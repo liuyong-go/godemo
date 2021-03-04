@@ -1,6 +1,0 @@
-含有php标签的html
-
-目前针对php if,for ,foreach, else 有做判断，其他的未加入
-对常用需要闭合html标签进行判断，需要增加可以在数组添加
-
-使用方法： ./main test.php
