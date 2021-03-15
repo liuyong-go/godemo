@@ -10,7 +10,32 @@ import (
 	"net/http"
 	"runtime"
 	"sync"
+	"sync/atomic"
 )
+
+type connReader struct {
+	conn *conn
+
+	mu      sync.Mutex // guards following
+	hasByte bool
+	byteBuf [1]byte
+	cond    *sync.Cond
+	inRead  bool
+	aborted bool  // set true before conn.rwc deadline is set to past
+	remain  int64 // bytes remaining
+}
+type checkConnErrorWriter struct {
+	c *conn
+}
+
+func (w checkConnErrorWriter) Write(p []byte) (n int, err error) {
+	n, err = w.c.rwc.Write(p)
+	if err != nil && w.c.werr == nil {
+		w.c.werr = err
+		w.c.cancelCtx()
+	}
+	return
+}
 
 type Header map[string][]string
 type response struct {
@@ -43,6 +68,22 @@ type response struct {
 	status        int   // status code passed to WriteHeader
 
 }
+type ResponseWriter interface {
+	Header() Header
+	Write([]byte) (int, error)
+	WriteHeader(statusCode int)
+}
+
+func (res *response) Header() {
+
+}
+func (res *response) Write([]byte) (int, error) {
+	return 200, nil
+}
+func (res *response) WriteHeader(int) {
+
+}
+
 type conn struct {
 	server     *Server
 	cancelCtx  context.CancelFunc
@@ -51,6 +92,10 @@ type conn struct {
 	mu         sync.Mutex
 	lastMethod string
 	bufr       *bufio.Reader
+	bufw       *bufio.Writer
+	curReq     atomic.Value
+	r          *connReader
+	werr       error
 }
 
 //Server 结构体
@@ -159,20 +204,54 @@ func (c *conn) serve(ctx context.Context) {
 	ctx, cancelCtx := context.WithCancel(ctx)
 	c.cancelCtx = cancelCtx
 	defer cancelCtx()
+	c.r = &connReader{conn: c}
+	c.bufr = newBufioReader(c.r)
+	c.bufw = newBufioWriterSize(checkConnErrorWriter{c}, 4<<10)
+	fmt.Println("before request1")
+	var i = 1
 	for {
 		w, err := c.readRequest(ctx)
+
 		if err != nil {
 			fmt.Println("read request err", err)
 		}
-		req := w.req
-		fmt.Println("response", req)
-
+		io.WriteString(w, "hello, world!\n")
+		fmt.Println("read ok", w)
+		i++
+		if i > 5 {
+			fmt.Println("return")
+			return
+		}
 	}
+}
+func newBufioWriterSize(w io.Writer, size int) *bufio.Writer {
+	pool := bufioWriterPool(size)
+	if pool != nil {
+		if v := pool.Get(); v != nil {
+			bw := v.(*bufio.Writer)
+			bw.Reset(w)
+			return bw
+		}
+	}
+	return bufio.NewWriterSize(w, size)
+}
+func bufioWriterPool(size int) *sync.Pool {
+	switch size {
+	case 2 << 10:
+		return &bufioWriter2kPool
+	case 4 << 10:
+		return &bufioWriter4kPool
+	}
+	return nil
 }
 
 //Read next request from connection.
 func (c *conn) readRequest(ctx context.Context) (w *response, err error) {
-	fmt.Println("read request")
+	req, err := readRequest(c.bufr)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("read request", req)
 	return
 }
 func (s *Server) getDoneChan() <-chan struct{} {
@@ -209,4 +288,60 @@ func (srv *Server) newConn(rwc net.Conn) *conn {
 		rwc:    rwc,
 	}
 	return c
+}
+
+var (
+	bufioReaderPool   sync.Pool
+	bufioWriter2kPool sync.Pool
+	bufioWriter4kPool sync.Pool
+)
+
+func newBufioReader(r io.Reader) *bufio.Reader {
+	if v := bufioReaderPool.Get(); v != nil {
+		br := v.(*bufio.Reader)
+		br.Reset(r)
+		return br
+	}
+	// Note: if this reader size is ever changed, update
+	// TestHandlerBodyClose's assumptions.
+	return bufio.NewReader(r)
+}
+func (cr *connReader) lock() {
+	cr.mu.Lock()
+	if cr.cond == nil {
+		cr.cond = sync.NewCond(&cr.mu)
+	}
+}
+
+func (cr *connReader) unlock() { cr.mu.Unlock() }
+func (cr *connReader) Read(p []byte) (n int, err error) {
+	cr.lock()
+	if cr.inRead {
+		cr.unlock()
+		panic("invalid concurrent Body.Read call")
+	}
+
+	if int64(len(p)) > cr.remain {
+		p = p[:cr.remain]
+	}
+	if cr.hasByte {
+		p[0] = cr.byteBuf[0]
+		cr.hasByte = false
+		cr.unlock()
+		return 1, nil
+	}
+	cr.inRead = true
+	cr.unlock()
+	n, err = cr.conn.rwc.Read(p)
+
+	cr.lock()
+	cr.inRead = false
+	if err != nil {
+		fmt.Println("read er", err)
+	}
+	cr.remain -= int64(n)
+	cr.unlock()
+
+	cr.cond.Broadcast()
+	return n, err
 }

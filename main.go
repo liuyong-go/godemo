@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"socket/yong"
+	"github.com/liuyong-go/godemo/yong"
 )
 
 // HelloServer world, the web server
