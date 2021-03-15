@@ -7,14 +7,14 @@ import (
 )
 
 type Server struct {
-	Http http `toml:"http"`
-	Rpc  rpc  `toml:"rpc"`
+	Http httpCll `toml:"http"`
+	Rpc  rpcCall `toml:"rpc"`
 }
-type http struct {
+type httpCll struct {
 	Addr string
 	Port int
 }
-type rpc struct {
+type rpcCall struct {
 	Addr string
 	Port int
 }

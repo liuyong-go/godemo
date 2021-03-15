@@ -2,6 +2,7 @@ package conf
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/BurntSushi/toml"
 )
@@ -29,6 +30,22 @@ func NewDatabase() *Database {
 //GetConfig dbConf := conf.NewDatabase().GetConfig()
 func (dma *Database) GetConfig() *Database {
 	if _, err := toml.DecodeFile(ConfPath+dma.getTomlFile(), &dma); err != nil {
+		fmt.Println(err)
+		return dma
+	}
+	return dma
+}
+
+//GetRemoteConfig 读取远程文件 dbConf := conf.NewDatabase().GetRemoteConfig()
+func (dma *Database) GetRemoteConfig() *Database {
+	remotePath := RemotePath + dma.getTomlFile()
+	resp, err := http.Get(remotePath)
+	if err != nil {
+		fmt.Println(err)
+		return dma
+	}
+	defer resp.Body.Close()
+	if _, err := toml.DecodeReader(resp.Body, &dma); err != nil {
 		fmt.Println(err)
 		return dma
 	}

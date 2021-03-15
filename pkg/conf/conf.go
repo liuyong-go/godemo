@@ -1,8 +1,9 @@
 package conf
 
 var (
-	ConfPath = "godemo/demos/toml/"
-	Conf     Config
+	ConfPath   = "godemo/demos/toml/"
+	RemotePath = "http://liuyong.m.soyoung.com/"
+	Conf       Config
 )
 
 type TomlConfig struct {
@@ -14,6 +15,6 @@ type Config struct {
 }
 
 func InitConfig() {
-	Conf.DB = NewDatabase().GetConfig()
+	Conf.DB = NewDatabase().GetRemoteConfig()
 	Conf.Server = NewServer().GetConfig()
 }
