@@ -1,0 +1,11 @@
+development = true
+info_path = "/Users/liuyong/go/src/logs/godemo/info/file"
+error_path = "/Users/liuyong/go/src/logs/godemo/error/file"
+[encode_config]
+    message_key = "msg"
+    level_key = "level"
+    time_key = "time"
+    caller_key = "file_path"
+[rotationlogs]
+    max_age = 720
+    rotation_time = 24

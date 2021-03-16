@@ -5,38 +5,25 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 // Config ...
 type YLogConfig struct {
-	// Dir 日志输出目录
-	Dir string
-	// Name 日志文件名称
-	Name string
-	// Level 日志初始等级
-	Level string
-	// 日志初始化字段
-	Fields []zap.Field
-	// 是否添加调用者信息
-	AddCaller bool
-	// 日志前缀
-	Prefix string
-	// 日志输出文件最大长度，超过改值则截断
-	MaxSize   int `toml:"max_size"` //M
-	MaxAge    int `toml:"max_age"`  //day
-	MaxBackup int `toml:"max_backup"`
-	// 日志磁盘刷盘间隔
-	Interval      time.Duration //*time.Hour
-	CallerSkip    int           `toml:"caller_skip"`
-	Async         bool
-	Queue         bool
-	QueueSleep    time.Duration `toml:"queue_sleep"`
-	Core          zapcore.Core
-	Debug         bool
-	EncoderConfig *zapcore.EncoderConfig
-	configKey     string
+	Development  bool         //开发，线上环境
+	InfoPath     string       `toml:"info_path"`
+	ErrorPath    string       `toml:"error_path"`
+	EncodeConfig EncodeConfig `toml:"encode_config"`
+	RotationLogs RotateLogs
+}
+type RotateLogs struct {
+	MaxAge       time.Duration `toml:"max_age"`       // 保存小时数
+	RotationTime time.Duration `toml:"rotation_time"` //切割频率 小时记录
+}
+type EncodeConfig struct {
+	MessageKey string `toml:"message_key"`
+	LevelKey   string `toml:"level_key"`
+	TimeKey    string `toml:"time_key"`
+	CallerKey  string `toml:"caller_key"`
 }
 
 func (c *YLogConfig) getTomlFile() string {
@@ -53,7 +40,6 @@ func (c *YLogConfig) GetConfig() *YLogConfig {
 		fmt.Println(err)
 		return c
 	}
-	c.Interval = c.Interval * time.Hour
-	c.QueueSleep = c.QueueSleep * time.Microsecond
+	c.RotationLogs.MaxAge = c.RotationLogs.MaxAge * time.Hour
 	return c
 }
