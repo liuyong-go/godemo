@@ -42,6 +42,21 @@ type Server interface {
 	Info() *ServiceInfo
 }
 
+func WithMetaData(key, value string) Option {
+	return func(c *ServiceInfo) {
+		c.Metadata[key] = value
+	}
+}
+func WithScheme(scheme string) Option {
+	return func(c *ServiceInfo) {
+		c.Scheme = scheme
+	}
+}
+func WithAddress(address string) Option {
+	return func(c *ServiceInfo) {
+		c.Address = address
+	}
+}
 func ApplyOptions(options ...Option) ServiceInfo {
 	info := defaultServiceInfo()
 	for _, option := range options {
