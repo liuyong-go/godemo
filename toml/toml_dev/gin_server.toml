@@ -1,0 +1,4 @@
+host = "127.0.0.1"
+port = 9090
+mode = "debug"
+service_address="local:9090"

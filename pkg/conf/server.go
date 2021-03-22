@@ -22,12 +22,12 @@ type rpcCall struct {
 func (dma *Server) getTomlFile() string {
 	return "server.toml"
 }
-func NewServer() *Server {
+func newServer() *Server {
 	return &Server{}
 }
 
 //GetConfig dbConf := conf.NewDatabase().GetConfig()
-func (c *Server) GetConfig() *Server {
+func (c *Server) getConfig() *Server {
 	if _, err := toml.DecodeFile(ConfPath+c.getTomlFile(), &c); err != nil {
 		fmt.Println(err)
 		return c

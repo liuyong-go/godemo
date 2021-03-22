@@ -7,7 +7,6 @@ import (
 	"time"
 
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
-	"github.com/liuyong-go/godemo/pkg/app"
 	"github.com/liuyong-go/godemo/pkg/conf"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -23,12 +22,12 @@ var (
 func InitLog() {
 	// config := zapcore.EncoderConfig{}
 	encoderConfig := zapcore.EncoderConfig{
-		MessageKey:   app.YLog.EncodeConfig.MessageKey,
-		LevelKey:     app.YLog.EncodeConfig.LevelKey,  //结构化（json）输出：日志级别的key（INFO，WARN，ERROR等）
-		TimeKey:      app.YLog.EncodeConfig.TimeKey,   //结构化（json）输出：时间的key（INFO，WARN，ERROR等）
-		CallerKey:    app.YLog.EncodeConfig.CallerKey, //结构化（json）输出：打印日志的文件对应的Key
-		EncodeLevel:  zapcore.CapitalLevelEncoder,     //将日志级别转换成大写（INFO，WARN，ERROR等）
-		EncodeCaller: zapcore.ShortCallerEncoder,      //采用短文件路径编码输出（test/main.go:14 ）
+		MessageKey:   conf.YLog.EncodeConfig.MessageKey,
+		LevelKey:     conf.YLog.EncodeConfig.LevelKey,  //结构化（json）输出：日志级别的key（INFO，WARN，ERROR等）
+		TimeKey:      conf.YLog.EncodeConfig.TimeKey,   //结构化（json）输出：时间的key（INFO，WARN，ERROR等）
+		CallerKey:    conf.YLog.EncodeConfig.CallerKey, //结构化（json）输出：打印日志的文件对应的Key
+		EncodeLevel:  zapcore.CapitalLevelEncoder,      //将日志级别转换成大写（INFO，WARN，ERROR等）
+		EncodeCaller: zapcore.ShortCallerEncoder,       //采用短文件路径编码输出（test/main.go:14 ）
 		EncodeTime: func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 			enc.AppendString(t.Format("2006-01-02 15:04:05"))
 		}, //输出的时间格式
@@ -44,10 +43,10 @@ func InitLog() {
 	warnLevel := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
 		return lvl >= zapcore.WarnLevel
 	})
-	infoWriter := getWriter(app.YLog.InfoPath)
-	warnWriter := getWriter(app.YLog.ErrorPath)
+	infoWriter := getWriter(conf.YLog.InfoPath)
+	warnWriter := getWriter(conf.YLog.ErrorPath)
 	var core zapcore.Core
-	if app.YLog.Development == true {
+	if conf.YLog.Development == true {
 		core = zapcore.NewTee(
 			zapcore.NewCore(zapcore.NewJSONEncoder(encoderConfig), zapcore.AddSync(os.Stdout), infoLevel), //同时将日志输出到控制台，NewJSONEncoder 是结构化输出
 		)
@@ -66,8 +65,8 @@ func getWriter(filename string) io.Writer {
 	hook, err := rotatelogs.New(
 		filename+".%Y%m%d%H",
 		rotatelogs.WithLinkName(filename),
-		rotatelogs.WithMaxAge(time.Hour*app.YLog.RotationLogs.MaxAge),                  // 保存30天
-		rotatelogs.WithRotationTime(time.Hour*conf.NewLog().RotationLogs.RotationTime), //切割频率 24小时
+		rotatelogs.WithMaxAge(time.Hour*conf.YLog.RotationLogs.MaxAge),             // 保存30天
+		rotatelogs.WithRotationTime(time.Hour*conf.YLog.RotationLogs.RotationTime), //切割频率 24小时
 	)
 	if err != nil {
 		log.Println("日志启动异常")

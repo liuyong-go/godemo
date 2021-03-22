@@ -30,12 +30,12 @@ func (c *YLogConfig) getTomlFile() string {
 	return "log.toml"
 }
 
-func NewLog() *YLogConfig {
+func newLog() *YLogConfig {
 	return &YLogConfig{}
 }
 
 //GetConfig dbConf := conf.NewDatabase().GetConfig()
-func (c *YLogConfig) GetConfig() *YLogConfig {
+func (c *YLogConfig) getConfig() *YLogConfig {
 	if _, err := toml.DecodeFile(ConfPath+c.getTomlFile(), &c); err != nil {
 		fmt.Println(err)
 		return c
