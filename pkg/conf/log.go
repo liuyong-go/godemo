@@ -14,6 +14,7 @@ type YLogConfig struct {
 	ErrorPath    string       `toml:"error_path"`
 	EncodeConfig EncodeConfig `toml:"encode_config"`
 	RotationLogs RotateLogs
+	Async        bool
 }
 type RotateLogs struct {
 	MaxAge       time.Duration `toml:"max_age"`       // 保存小时数

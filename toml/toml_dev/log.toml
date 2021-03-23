@@ -1,6 +1,7 @@
 development = true
 info_path = "/Users/liuyong/go/src/logs/godemo/info/file"
 error_path = "/Users/liuyong/go/src/logs/godemo/error/file"
+async = true
 [encode_config]
     message_key = "msg"
     level_key = "level"

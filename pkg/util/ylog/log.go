@@ -8,6 +8,7 @@ import (
 
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/liuyong-go/godemo/pkg/conf"
+	"github.com/liuyong-go/godemo/pkg/util/ydefer"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -43,17 +44,30 @@ func InitLog() {
 	warnLevel := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
 		return lvl >= zapcore.WarnLevel
 	})
-	infoWriter := getWriter(conf.YLog.InfoPath)
-	warnWriter := getWriter(conf.YLog.ErrorPath)
+
+	var wsInfo zapcore.WriteSyncer
+	var wsWarn zapcore.WriteSyncer
 	var core zapcore.Core
 	if conf.YLog.Development == true {
+		wsInfo = os.Stdout
+	} else {
+		wsInfo = zapcore.AddSync(getWriter(conf.YLog.InfoPath))
+		wsWarn = zapcore.AddSync(getWriter(conf.YLog.ErrorPath))
+	}
+	if conf.YLog.Async == true {
+		var close CloseFunc
+		wsInfo, close = Buffer(wsInfo, defaultBufferSize, defaultFlushInterval)
+		wsWarn, close = Buffer(wsWarn, defaultBufferSize, defaultFlushInterval)
+		ydefer.Register(close)
+	}
+	if conf.YLog.Development == true {
 		core = zapcore.NewTee(
-			zapcore.NewCore(zapcore.NewJSONEncoder(encoderConfig), zapcore.AddSync(os.Stdout), infoLevel), //同时将日志输出到控制台，NewJSONEncoder 是结构化输出
+			zapcore.NewCore(zapcore.NewJSONEncoder(encoderConfig), wsInfo, infoLevel), //同时将日志输出到控制台，NewJSONEncoder 是结构化输出
 		)
 	} else {
 		core = zapcore.NewTee(
-			zapcore.NewCore(zapcore.NewConsoleEncoder(encoderConfig), zapcore.AddSync(infoWriter), infoLevel),
-			zapcore.NewCore(zapcore.NewConsoleEncoder(encoderConfig), zapcore.AddSync(warnWriter), warnLevel),
+			zapcore.NewCore(zapcore.NewConsoleEncoder(encoderConfig), wsInfo, infoLevel),
+			zapcore.NewCore(zapcore.NewConsoleEncoder(encoderConfig), wsWarn, warnLevel),
 		)
 	}
 	//实现多个输出
