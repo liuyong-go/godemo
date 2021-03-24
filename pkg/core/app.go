@@ -1,12 +1,14 @@
 package core
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"sync"
 
 	"github.com/liuyong-go/godemo/pkg/conf"
 	"github.com/liuyong-go/godemo/pkg/server"
+	"github.com/liuyong-go/godemo/pkg/util/signals"
 	"github.com/liuyong-go/godemo/pkg/util/ydefer"
 	"github.com/liuyong-go/godemo/pkg/util/ygo"
 	"github.com/liuyong-go/godemo/pkg/util/ylog"
@@ -103,7 +105,36 @@ func (app *Application) Serve(s ...server.Server) error {
 	return nil
 }
 func (app *Application) Run(servers ...server.Server) error {
+	app.smu.Lock()
+	app.servers = append(app.servers, servers...)
+	app.smu.Unlock()
+	app.waitSignals() //开启协程监听信号
+	defer app.clean()
+
+	return nil
+}
+
+// waitSignals wait signal
+func (app *Application) waitSignals() {
+	ylog.SugarLogger.Info("init listen signal")
+	signals.Shutdown(func(grace bool) {
+		if grace {
+			app.GracefulStop(context.TODO())
+		} else {
+			app.Stop()
+		}
+	})
+}
+func (app *Application) clean() {
+	ylog.Logger.Sync()
+}
+func (app *Application) Stop() (err error) {
 	app.runHooks(StageBeforeStop)
 	app.runHooks(StageAfterStop)
-	return nil
+	return
+}
+func (app *Application) GracefulStop(ctx context.Context) (err error) {
+	app.runHooks(StageBeforeStop)
+	app.runHooks(StageAfterStop)
+	return
 }
