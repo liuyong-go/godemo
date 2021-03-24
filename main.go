@@ -20,8 +20,6 @@ type App struct {
 }
 
 func main() {
-	testCycle()
-	return
 	conf.ConfPath = "/Users/liuyong/go/src/godemo/toml/toml_dev/"
 	var app = &App{}
 	app.Start(app.serverHttp)

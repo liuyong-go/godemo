@@ -34,6 +34,7 @@ require (
 	go.uber.org/zap v1.16.0 // indirect
 	golang.org/x/arch v0.0.0-20210315020452-ea130f1b0a00 // indirect
 	golang.org/x/crypto v0.0.0-20210317152858-513c2a44f670 // indirect
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20210324051608-47abb6519492 // indirect
 	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
 	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect

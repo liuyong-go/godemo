@@ -9,9 +9,11 @@ import (
 	"github.com/liuyong-go/godemo/pkg/conf"
 	"github.com/liuyong-go/godemo/pkg/server"
 	"github.com/liuyong-go/godemo/pkg/util/signals"
+	"github.com/liuyong-go/godemo/pkg/util/ycycle"
 	"github.com/liuyong-go/godemo/pkg/util/ydefer"
 	"github.com/liuyong-go/godemo/pkg/util/ygo"
 	"github.com/liuyong-go/godemo/pkg/util/ylog"
+	"golang.org/x/sync/errgroup"
 )
 
 type Application struct {
@@ -21,6 +23,7 @@ type Application struct {
 	stopOnce    sync.Once
 	servers     []server.Server
 	hooks       map[uint32]*ydefer.DeferStack //注册钩子函数
+	cycle       *ycycle.Cycle
 }
 
 const (
@@ -58,6 +61,7 @@ func (app *Application) RegisterHooks(k uint32, fns ...func() error) error {
 func (app *Application) initialize() {
 	app.initOnce.Do(func() {
 		//assign
+		app.cycle = ycycle.NewCycle()
 		app.smu = &sync.RWMutex{}
 		app.servers = make([]server.Server, 0)
 		//private method
@@ -110,8 +114,27 @@ func (app *Application) Run(servers ...server.Server) error {
 	app.smu.Unlock()
 	app.waitSignals() //开启协程监听信号
 	defer app.clean()
-
+	app.cycle.Run(app.startServers)
+	if err := <-app.cycle.Wait(); err != nil {
+		ylog.SugarLogger.Info("shutdown with error", err)
+		return err
+	}
+	ylog.SugarLogger.Info("shut down,bye")
 	return nil
+}
+func (app *Application) startServers() error {
+	fmt.Println("start server")
+	var eg errgroup.Group
+	for _, s := range app.servers {
+		s := s
+		eg.Go(func() (err error) {
+			ylog.SugarLogger.Info("start server", s.Info().Name)
+			defer ylog.SugarLogger.Info("end server", s.Info().Name)
+			err = s.Serve()
+			return
+		})
+	}
+	return eg.Wait()
 }
 
 // waitSignals wait signal
@@ -129,12 +152,36 @@ func (app *Application) clean() {
 	ylog.Logger.Sync()
 }
 func (app *Application) Stop() (err error) {
-	app.runHooks(StageBeforeStop)
-	app.runHooks(StageAfterStop)
+	app.stopOnce.Do(func() {
+		app.runHooks(StageBeforeStop)
+		app.smu.RLock()
+		for _, s := range app.servers {
+			func(s server.Server) {
+				app.cycle.Run(s.Stop)
+			}(s)
+		}
+		app.smu.Unlock()
+		<-app.cycle.Done()
+		app.runHooks(StageAfterStop)
+		app.cycle.Close()
+	})
 	return
 }
 func (app *Application) GracefulStop(ctx context.Context) (err error) {
-	app.runHooks(StageBeforeStop)
-	app.runHooks(StageAfterStop)
+	app.stopOnce.Do(func() {
+		app.runHooks(StageBeforeStop)
+		app.smu.RLock()
+		for _, s := range app.servers {
+			func(s server.Server) {
+				app.cycle.Run(func() error {
+					return s.GracefulStop(ctx)
+				})
+			}(s)
+		}
+		app.smu.Unlock()
+		<-app.cycle.Done()
+		app.runHooks(StageAfterStop)
+		app.cycle.Close()
+	})
 	return
 }
