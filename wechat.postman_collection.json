@@ -1,0 +1,181 @@
+{
+	"info": {
+		"_postman_id": "b8df05d8-e919-4028-a2e5-35bbf714d6ad",
+		"name": "微信",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "token",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=wxef8f704f2b752ed8&secret=a093eb2b85618bfa46845f0794e8f7d5",
+					"protocol": "https",
+					"host": [
+						"api",
+						"weixin",
+						"qq",
+						"com"
+					],
+					"path": [
+						"cgi-bin",
+						"token"
+					],
+					"query": [
+						{
+							"key": "grant_type",
+							"value": "client_credential"
+						},
+						{
+							"key": "appid",
+							"value": "wxef8f704f2b752ed8"
+						},
+						{
+							"key": "secret",
+							"value": "a093eb2b85618bfa46845f0794e8f7d5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "分享",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"pid\": \"oT5i95Q5ecAbTJSKibs6A9WUsLXI_2206977256\",\n  \"productList\": [\n    {\n      \"productId\": \"19508675\",\n      \"appId\": \"wxe65224091d060bb3\"\n    }\n  ]\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.weixin.qq.com/union/promoter/product/generate?access_token=43_VQHQ2oHE1U-kmpBxREQl8VdA5dVx3hMm5lVprYLjS3nEKS0Fl1BrGfW_vwQfG-58D7DuyXrt-FkPwBEYJxm1Iam2Z1eypzNNwPKc_YbiYwMXwlEa9eO9w7F8PIyPUg9JK0dpuWi-Uk9nUZgRTHPdAAAHVD",
+					"protocol": "https",
+					"host": [
+						"api",
+						"weixin",
+						"qq",
+						"com"
+					],
+					"path": [
+						"union",
+						"promoter",
+						"product",
+						"generate"
+					],
+					"query": [
+						{
+							"key": "access_token",
+							"value": "43_VQHQ2oHE1U-kmpBxREQl8VdA5dVx3hMm5lVprYLjS3nEKS0Fl1BrGfW_vwQfG-58D7DuyXrt-FkPwBEYJxm1Iam2Z1eypzNNwPKc_YbiYwMXwlEa9eO9w7F8PIyPUg9JK0dpuWi-Uk9nUZgRTHPdAAAHVD"
+						},
+						{
+							"key": "pid",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "列表",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://api.weixin.qq.com/union/promoter/product/list?access_token=43_VQHQ2oHE1U-kmpBxREQl8VdA5dVx3hMm5lVprYLjS3nEKS0Fl1BrGfW_vwQfG-58D7DuyXrt-FkPwBEYJxm1Iam2Z1eypzNNwPKc_YbiYwMXwlEa9eO9w7F8PIyPUg9JK0dpuWi-Uk9nUZgRTHPdAAAHVD&from=1&limit=10&query&queryType&categoryId=1701&sortType=4",
+					"protocol": "https",
+					"host": [
+						"api",
+						"weixin",
+						"qq",
+						"com"
+					],
+					"path": [
+						"union",
+						"promoter",
+						"product",
+						"list"
+					],
+					"query": [
+						{
+							"key": "access_token",
+							"value": "43_VQHQ2oHE1U-kmpBxREQl8VdA5dVx3hMm5lVprYLjS3nEKS0Fl1BrGfW_vwQfG-58D7DuyXrt-FkPwBEYJxm1Iam2Z1eypzNNwPKc_YbiYwMXwlEa9eO9w7F8PIyPUg9JK0dpuWi-Uk9nUZgRTHPdAAAHVD"
+						},
+						{
+							"key": "from",
+							"value": "1"
+						},
+						{
+							"key": "limit",
+							"value": "10"
+						},
+						{
+							"key": "query",
+							"value": null
+						},
+						{
+							"key": "queryType",
+							"value": null
+						},
+						{
+							"key": "categoryId",
+							"value": "1701"
+						},
+						{
+							"key": "sortType",
+							"value": "4"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "分类",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://api.weixin.qq.com/union/promoter/product/category?access_token=43_zEvGbHSYpeDWxK4TIQ3_n5HYFwwPKVYog9lPCWCDURg6KkoD7Sg8JbDr9eC1ext5cXQXciIIItVEbqA9iNDwubqg5U40KDxbeSk9qE5c3DIUi0t5iFo33sROChTb0sovyKW0s745IlMkSsFJEEDcAJAZZY",
+					"protocol": "https",
+					"host": [
+						"api",
+						"weixin",
+						"qq",
+						"com"
+					],
+					"path": [
+						"union",
+						"promoter",
+						"product",
+						"category"
+					],
+					"query": [
+						{
+							"key": "access_token",
+							"value": "43_zEvGbHSYpeDWxK4TIQ3_n5HYFwwPKVYog9lPCWCDURg6KkoD7Sg8JbDr9eC1ext5cXQXciIIItVEbqA9iNDwubqg5U40KDxbeSk9qE5c3DIUi0t5iFo33sROChTb0sovyKW0s745IlMkSsFJEEDcAJAZZY"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
