@@ -123,12 +123,12 @@ func (app *Application) Run(servers ...server.Server) error {
 	return nil
 }
 func (app *Application) startServers() error {
-	fmt.Println("start server")
 	var eg errgroup.Group
 	for _, s := range app.servers {
 		s := s
 		eg.Go(func() (err error) {
-			ylog.SugarLogger.Info("start server", s.Info().Name)
+			fmt.Println("server start", s.Info().Address)
+			ylog.SugarLogger.Infow("start server ", s.Info().Address)
 			defer ylog.SugarLogger.Info("end server", s.Info().Name)
 			err = s.Serve()
 			return
@@ -178,7 +178,7 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 				})
 			}(s)
 		}
-		app.smu.Unlock()
+		app.smu.RUnlock()
 		<-app.cycle.Done()
 		app.runHooks(StageAfterStop)
 		app.cycle.Close()

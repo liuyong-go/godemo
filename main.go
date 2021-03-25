@@ -12,7 +12,6 @@ import (
 	"github.com/liuyong-go/godemo/pkg/util/ycycle"
 	"github.com/liuyong-go/godemo/pkg/util/ydefer"
 	"github.com/liuyong-go/godemo/pkg/util/ylog"
-	"go.uber.org/zap"
 )
 
 type App struct {
@@ -27,7 +26,6 @@ func main() {
 	app.RegisterHooks(core.StageBeforeStop, app.beforeStop)
 	app.Run()
 	defer ydefer.Clean()
-	ylog.SugarLogger.Infow("测试日志", zap.String("name", "测试"))
 	fmt.Println("输出内容")
 
 }
