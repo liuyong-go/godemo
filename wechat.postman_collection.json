@@ -11,7 +11,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=wxef8f704f2b752ed8&secret=a093eb2b85618bfa46845f0794e8f7d5",
+					"raw": "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=xx&secret=xx",
 					"protocol": "https",
 					"host": [
 						"api",
