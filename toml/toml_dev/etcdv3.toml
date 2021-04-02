@@ -1,0 +1,11 @@
+endpoints = ["http://127.0.0.1:2479","http://127.0.0.1:2379","http://127.0.0.1:2579"]
+cert_file = ""
+key_file = ""
+ca_cert = ""
+basic_auth = false
+user_name = ""
+password = ""
+connect_timeout = 5
+secure = false
+auto_sync_interval = 5
+service_prefix = "service/"

@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"sync/atomic"
 	"time"
 
+	"github.com/coreos/etcd/clientv3"
 	"github.com/gin-gonic/gin"
+	"github.com/liuyong-go/godemo/pkg/client/etcdv3"
 	"github.com/liuyong-go/godemo/pkg/conf"
 	"github.com/liuyong-go/godemo/pkg/core"
 	"github.com/liuyong-go/godemo/pkg/server/ygin"
@@ -20,6 +23,8 @@ type App struct {
 
 func main() {
 	conf.ConfPath = "/Users/liuyong/go/src/godemo/toml/toml_dev/"
+	// testEtcd()
+	// return
 	var app = &App{}
 	app.Start(app.serverHttp)
 	app.RegisterHooks(core.StageAfterStop, app.afterStop)
@@ -28,6 +33,26 @@ func main() {
 	defer ydefer.Clean()
 	fmt.Println("输出内容")
 
+}
+func testEtcd() {
+	client := etcdv3.NewClient()
+	var ctx = context.Background()
+	client.Put(ctx, "service/http/sevice1", "http://127.0.0.1:2037")
+	client.Put(ctx, "service/http/sevice2", "http://127.0.0.1:2047")
+	res, err := client.Get(ctx, "service/http", clientv3.WithPrefix())
+	if err != nil {
+		fmt.Println("error", err)
+	} else {
+		fmt.Println("result", string(res.Kvs[1].Value))
+	}
+	var w *etcdv3.Watch
+	w, _ = client.WatchPrefix(ctx, "service/http", callFunc)
+	fmt.Println("jianting", w)
+	time.Sleep(10 * time.Minute)
+}
+func callFunc(ev *clientv3.Event) error {
+	fmt.Println("callback", ev)
+	return nil
 }
 func testCycle() {
 	state := "init"

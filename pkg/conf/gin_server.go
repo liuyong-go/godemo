@@ -7,11 +7,10 @@ import (
 )
 
 type GinHttp struct {
-	Host string
-	Port int
+	Service
 	Mode string //debug, release,test
 	// ServiceAddress service address in registry info, default to 'Host:Port'
-	ServiceAddress string `toml:"service_address"`
+
 }
 
 func (dma *GinHttp) getTomlFile() string {

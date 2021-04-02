@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 
+	"github.com/coreos/etcd/clientv3/concurrency"
 	"github.com/liuyong-go/godemo/pkg"
 )
 
@@ -26,6 +27,7 @@ type ServiceInfo struct {
 	// Group 流量组: 流量在Group之间进行负载均衡
 	Group    string              `json:"group"`
 	Services map[string]*Service `json:"services" toml:"services"`
+	Session  *concurrency.Session
 }
 
 // Service ...
@@ -45,6 +47,17 @@ type Server interface {
 func WithMetaData(key, value string) Option {
 	return func(c *ServiceInfo) {
 		c.Metadata[key] = value
+	}
+}
+func WithName(name string) Option {
+	return func(c *ServiceInfo) {
+		c.Name = name
+	}
+}
+
+func WithEnable(enable bool) Option {
+	return func(c *ServiceInfo) {
+		c.Enable = enable
 	}
 }
 func WithScheme(scheme string) Option {
@@ -69,7 +82,7 @@ func defaultServiceInfo() ServiceInfo {
 		Name:       pkg.Name(),
 		AppID:      pkg.AppID(),
 		Weight:     100,
-		Enable:     true,
+		Enable:     false,
 		Healthy:    true,
 		Metadata:   make(map[string]string),
 		Region:     pkg.AppRegion(),

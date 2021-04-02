@@ -3,7 +3,6 @@ package ygin
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"net/http"
 
@@ -68,11 +67,13 @@ func (s *Server) Info() *server.ServiceInfo {
 		serviceAddr = conf.YGinHttp.ServiceAddress
 	}
 	info := server.ApplyOptions(
-		server.WithScheme("http"),
+		server.WithScheme(conf.YGinHttp.Scheme),
 		server.WithAddress(serviceAddr),
+		server.WithName(conf.YGinHttp.Name),
+		server.WithEnable(conf.YGinHttp.EnableService),
 	)
 	return &info
 }
 func Address() string {
-	return fmt.Sprintf("%s:%d", conf.YGinHttp.Host, conf.YGinHttp.Port)
+	return conf.YGinHttp.ServiceAddress
 }

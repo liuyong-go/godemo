@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/liuyong-go/godemo/pkg/client/etcdv3"
 	"github.com/liuyong-go/godemo/pkg/conf"
 	"github.com/liuyong-go/godemo/pkg/server"
 	"github.com/liuyong-go/godemo/pkg/util/signals"
@@ -102,6 +103,7 @@ func (app *Application) loadLog() error {
 	ylog.InitLog()
 	return nil
 }
+
 func (app *Application) Serve(s ...server.Server) error {
 	app.smu.Lock()
 	defer app.smu.Unlock()
@@ -127,10 +129,19 @@ func (app *Application) startServers() error {
 	for _, s := range app.servers {
 		s := s
 		eg.Go(func() (err error) {
-			fmt.Println("server start", s.Info().Address)
-			ylog.SugarLogger.Infow("start server ", s.Info().Address)
+			fmt.Println("server address", s.Info().Address)
 			defer ylog.SugarLogger.Info("end server", s.Info().Name)
+			fmt.Println("register server")
+			err = etcdv3.NewClient().RegistService(s.Info())
+			if err != nil {
+				fmt.Println("register server fail", err)
+			}
 			err = s.Serve()
+			if err != nil {
+				fmt.Println("server serve fail", err)
+				etcdv3.NewClient().UnregistService(s.Info())
+			}
+
 			return
 		})
 	}
@@ -173,6 +184,7 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 		app.smu.RLock()
 		for _, s := range app.servers {
 			func(s server.Server) {
+				fmt.Println("close info", s.Info())
 				app.cycle.Run(func() error {
 					return s.GracefulStop(ctx)
 				})
