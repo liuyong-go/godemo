@@ -1,0 +1,4 @@
+service_name = "godemo"
+local_agent_address = "182.92.69.149:6831"
+log_spans = true
+

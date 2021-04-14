@@ -1,0 +1,12 @@
+syntax = "proto3";
+option go_package="/";
+package helloworld;
+service Greeter{
+    rpc GetData(data)returns (data){}
+    rpc RecordData(stream data) returns (data){}
+    rpc RouteData(stream data) returns(data){}
+}
+
+message data{
+    string name = 1;
+}

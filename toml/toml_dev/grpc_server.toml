@@ -1,0 +1,6 @@
+mode = "debug"
+service_address="127.0.0.1:9091"
+scheme = "rpc"
+name = "grpc_test"
+enable_service = true
+network = "tcp4"

@@ -82,6 +82,7 @@ func (app *Application) startup() (err error) {
 func (app *Application) Start(fns ...func() error) error {
 	app.initialize()
 	if err := app.startup(); err != nil {
+		fmt.Println("app error", err)
 		return err
 	}
 	return ygo.SerialUntilError(fns...)()
@@ -131,7 +132,6 @@ func (app *Application) startServers() error {
 		eg.Go(func() (err error) {
 			fmt.Println("server address", s.Info().Address)
 			defer ylog.SugarLogger.Info("end server", s.Info().Name)
-			fmt.Println("register server")
 			err = etcdv3.NewClient().RegistService(s.Info())
 			if err != nil {
 				fmt.Println("register server fail", err)

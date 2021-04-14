@@ -14,19 +14,19 @@ import (
 
 type Server struct {
 	*gin.Engine
-	Server  *http.Server
-	Listner net.Listener
+	Server   *http.Server
+	Listener net.Listener
 }
 
 func NewServer() *Server {
-	listner, err := net.Listen("tcp", Address())
+	listener, err := net.Listen("tcp", Address())
 	if err != nil {
 		ylog.SugarLogger.Panic("new gin server err", err)
 	}
 	gin.SetMode(conf.YGinHttp.Mode)
 	return &Server{
-		Engine:  gin.New(),
-		Listner: listner,
+		Engine:   gin.New(),
+		Listener: listener,
 	}
 
 }
@@ -40,7 +40,7 @@ func (s *Server) Serve() error {
 		Addr:    Address(),
 		Handler: s,
 	}
-	err := s.Server.Serve(s.Listner)
+	err := s.Server.Serve(s.Listener)
 	if err == http.ErrServerClosed {
 		ylog.SugarLogger.Info("close gin", Address())
 		return nil
@@ -62,7 +62,7 @@ func (s *Server) GracefulStop(ctx context.Context) error {
 
 // Info returns server info, used by governor and consumer balancer
 func (s *Server) Info() *server.ServiceInfo {
-	serviceAddr := s.Listner.Addr().String()
+	serviceAddr := s.Listener.Addr().String()
 	if conf.YGinHttp.ServiceAddress != "" {
 		serviceAddr = conf.YGinHttp.ServiceAddress
 	}
